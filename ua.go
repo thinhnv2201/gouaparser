@@ -13,10 +13,10 @@ type UserAgent struct {
 	OS        string
 	OSVersion string
 	Device    string
-	Mobile    bool
-	Tablet    bool
-	Desktop   bool
-	Bot       bool
+	IsMobile  bool
+	IsTablet  bool
+	IsDesktop bool
+	IsBot     bool
 	URL       string
 	String    string
 }
@@ -78,7 +78,7 @@ func Parse(userAgent string) UserAgent {
 		for s := range tokens {
 			if strings.HasSuffix(s, "Build") {
 				ua.Device = strings.TrimSpace(s[:len(s)-5])
-				ua.Tablet = strings.Contains(strings.ToLower(ua.Device), "tablet")
+				ua.IsTablet = strings.Contains(strings.ToLower(ua.Device), "tablet")
 			}
 		}
 
@@ -86,33 +86,33 @@ func Parse(userAgent string) UserAgent {
 		ua.OS = IOS
 		ua.OSVersion = tokens.findMacOSVersion()
 		ua.Device = "iPhone"
-		ua.Mobile = true
+		ua.IsMobile = true
 
 	case tokens.exists("iPad"):
 		ua.OS = IOS
 		ua.OSVersion = tokens.findMacOSVersion()
 		ua.Device = "iPad"
-		ua.Tablet = true
+		ua.IsTablet = true
 
 	case tokens.exists("Windows NT"):
 		ua.OS = Windows
 		ua.OSVersion = tokens["Windows NT"]
-		ua.Desktop = true
+		ua.IsDesktop = true
 
 	case tokens.exists("Windows Phone OS"):
 		ua.OS = WindowsPhone
 		ua.OSVersion = tokens["Windows Phone OS"]
-		ua.Mobile = true
+		ua.IsMobile = true
 
 	case tokens.exists("Macintosh"):
 		ua.OS = MacOS
 		ua.OSVersion = tokens.findMacOSVersion()
-		ua.Desktop = true
+		ua.IsDesktop = true
 
 	case tokens.exists("Linux"):
 		ua.OS = Linux
 		ua.OSVersion = tokens[Linux]
-		ua.Desktop = true
+		ua.IsDesktop = true
 
 	}
 
@@ -125,47 +125,47 @@ func Parse(userAgent string) UserAgent {
 	case tokens.exists("Googlebot"):
 		ua.Name = Googlebot
 		ua.Version = tokens[Googlebot]
-		ua.Bot = true
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsBot = true
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["Opera Mini"] != "":
 		ua.Name = OperaMini
 		ua.Version = tokens[OperaMini]
-		ua.Mobile = true
+		ua.IsMobile = true
 
 	case tokens["OPR"] != "":
 		ua.Name = Opera
 		ua.Version = tokens["OPR"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["OPT"] != "":
 		ua.Name = OperaTouch
 		ua.Version = tokens["OPT"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	// Opera on iOS
 	case tokens["OPiOS"] != "":
 		ua.Name = Opera
 		ua.Version = tokens["OPiOS"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	// Chrome on iOS
 	case tokens["CriOS"] != "":
 		ua.Name = Chrome
 		ua.Version = tokens["CriOS"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	// Firefox on iOS
 	case tokens["FxiOS"] != "":
 		ua.Name = Firefox
 		ua.Version = tokens["FxiOS"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["Firefox"] != "":
 		ua.Name = Firefox
 		ua.Version = tokens[Firefox]
-		_, ua.Mobile = tokens["Mobile"]
-		_, ua.Tablet = tokens["Tablet"]
+		_, ua.IsMobile = tokens["Mobile"]
+		_, ua.IsTablet = tokens["Tablet"]
 
 	case tokens["Vivaldi"] != "":
 		ua.Name = Vivaldi
@@ -178,22 +178,22 @@ func Parse(userAgent string) UserAgent {
 	case tokens["Edge"] != "":
 		ua.Name = Edge
 		ua.Version = tokens["Edge"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["EdgA"] != "":
 		ua.Name = Edge
 		ua.Version = tokens["EdgA"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["bingbot"] != "":
 		ua.Name = "Bingbot"
 		ua.Version = tokens["bingbot"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens["SamsungBrowser"] != "":
 		ua.Name = "Samsung Browser"
 		ua.Version = tokens["SamsungBrowser"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	// if chrome and Safari defined, find any other tokensent descr
 	case tokens.exists(Chrome) && tokens.exists(Safari):
@@ -208,7 +208,7 @@ func Parse(userAgent string) UserAgent {
 	case tokens.exists("Chrome"):
 		ua.Name = Chrome
 		ua.Version = tokens["Chrome"]
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	case tokens.exists("Safari"):
 		ua.Name = Safari
@@ -217,13 +217,13 @@ func Parse(userAgent string) UserAgent {
 		} else {
 			ua.Version = tokens["Safari"]
 		}
-		ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+		ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 
 	default:
 		if ua.OS == "Android" && tokens["Version"] != "" {
 			ua.Name = "Android browser"
 			ua.Version = tokens["Version"]
-			ua.Mobile = true
+			ua.IsMobile = true
 		} else {
 			if name := tokens.findBestMatch(false); name != "" {
 				ua.Name = name
@@ -231,25 +231,25 @@ func Parse(userAgent string) UserAgent {
 			} else {
 				ua.Name = ua.String
 			}
-			ua.Bot = strings.Contains(strings.ToLower(ua.Name), "bot")
-			ua.Mobile = tokens.existsAny("Mobile", "Mobile Safari")
+			ua.IsBot = strings.Contains(strings.ToLower(ua.Name), "bot")
+			ua.IsMobile = tokens.existsAny("Mobile", "Mobile Safari")
 		}
 	}
 
 	// if tabler, switch mobile to off
-	if ua.Tablet {
-		ua.Mobile = false
+	if ua.IsTablet {
+		ua.IsMobile = false
 	}
 
 	// if not already bot, check some popular bots and weather URL is set
-	if !ua.Bot {
-		ua.Bot = ua.URL != ""
+	if !ua.IsBot {
+		ua.IsBot = ua.URL != ""
 	}
 
-	if !ua.Bot {
+	if !ua.IsBot {
 		switch ua.Name {
 		case Twitterbot, FacebookExternalHit:
-			ua.Bot = true
+			ua.IsBot = true
 		}
 	}
 
@@ -331,23 +331,12 @@ func checkVer(s string) (name, v string) {
 		return s, ""
 	}
 
-	//v = s[i+1:]
-
 	switch s[:i] {
 	case "Linux", "Windows NT", "Windows Phone OS", "MSIE", "Android":
 		return s[:i], s[i+1:]
 	default:
 		return s, ""
 	}
-
-	// for _, c := range v {
-	// 	if (c >= 48 && c <= 57) || c == 46 {
-	// 	} else {
-	// 		return s, ""
-	// 	}
-	// }
-
-	// return s[:i], s[i+1:]
 
 }
 
